@@ -1,11 +1,20 @@
-import subprocess
-import os
-import tiktoken
 from collections import defaultdict
 from prettytable import PrettyTable
+import argparse
+import os
+import subprocess
+import tiktoken
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Estimate tokens in a git repository.')
+parser.add_argument('dir', type=str, help='Path to the git repository')
+args = parser.parse_args()
+
+dir = args.dir
 
 # Get list of all files known to git in the repository
-files = subprocess.check_output('git ls-files', shell=True).decode('utf-8').splitlines()
+files = subprocess.check_output('git ls-files', shell=True, cwd=dir).decode('utf-8').splitlines()
+files = map(lambda file: dir + file, files)
 
 # Group files by extension
 files_by_extension = defaultdict(list)
@@ -29,7 +38,7 @@ for ext, file_list in files_by_extension.items():
                 token_counts[ext] += len(tokens)
                 file_counts[ext] += 1
         except Exception as e:
-            print(f'Error processing {file_path}: {e}')
+            pass
 
 # Set up pretty table
 table = PrettyTable()
